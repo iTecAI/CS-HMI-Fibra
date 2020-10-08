@@ -8,27 +8,32 @@ class MainApp(App):
         conn = super().create_connection(fingerprint)
         self.cache_all()
         self.users = self.load_cache()
-        exists = False
+        usr = None
         for u in self.users.keys():
             if self.users[u]['owner'] == fingerprint:
-                exists = True
-        if not exists:
-            self.users[sha256(fingerprint.encode('utf-8')).hexdigest()] = {
+                usr = u
+                break
+        if usr == None:
+            usr = sha256(fingerprint.encode('utf-8')).hexdigest()
+            self.users[usr] = {
                 'owner':fingerprint,
                 'funds':0,
                 'inventory':[]
             }
+        conn['current_user'] = usr
         self.cache_all()
         return conn
 
 app = MainApp()
+if not os.path.exists('users.json'):
+    with open('users.json','w') as f:
+        f.write('{}')
 
 # Load all static files in web/
 static = os.walk('web')
 files = {}
 for folder in list(static):
     for f in folder[2]:
-        print(folder)
         files['/'.join(folder[0].split(os.sep))+'/'+f] = os.path.join(folder[0],f)
 
 for f in files.keys():
