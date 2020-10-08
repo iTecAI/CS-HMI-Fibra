@@ -17,6 +17,7 @@ function refresh(data,force) {
         console.log(data);
         CONNECTION = data.connection;
         USER = data.user;
+        $('#username input').val(USER.name);
     }
 }
 function refresh_force(data) {
@@ -46,4 +47,11 @@ $(document).ready(function(){
             {},refresh
         );
     },100);
+    $('#username input').on('change',function(){
+        r(
+            'post',
+            '/user/name/',
+            {fingerprint:FINGERPRINT,name:$(this).val()},{},console.log
+        );
+    });
 });

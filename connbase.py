@@ -30,21 +30,12 @@ class App:
             return self.connections[fingerprint]
         @self.app.get('/connections/self/')
         async def get_connection(fingerprint: str, response: Response):
-            if not fingerprint in self.connections.keys():
-                self.cache_all()
-                users = self.load_cache()
-                found = False
-                for u in users.values():
-                    if u['owner'] == fingerprint:
-                        self.connections[fingerprint] = self.create_connection(fingerprint)
-                        found = True
-                        break
-                if not found:
-                    response.status_code = status.HTTP_404_NOT_FOUND
-                    return {
-                        'connection':None,
-                        'user':None
-                    }
+            if not self.check_fp(fingerprint):
+                response.status_code = status.HTTP_404_NOT_FOUND
+                return {
+                    'connection':None,
+                    'user':None
+                }
             self.connections[fingerprint]['last_update'] = time.time()
             
             if self.connections[fingerprint]['current_user']:
@@ -72,6 +63,24 @@ class App:
     
     def run(self,host='localhost',port=5000,log_level='info'):
         uvicorn.run(self.app,host=host,port=port,log_level=log_level,access_log=False)
+    
+    def check_fp(self,fingerprint):
+        if not fingerprint in self.connections.keys():
+            self.cache_all()
+            self.users = self.load_cache()
+            found = False
+            for u in self.users.values():
+                if u['owner'] == fingerprint:
+                    self.connections[fingerprint] = self.create_connection(fingerprint)
+                    found = True
+                    break
+            return found
+        return True
+    
+    def update(self,fingerprint):
+        self.connections[fingerprint]['update'] = True
+        self.cache_all()
+                
     
     def create_connection(self,fingerprint):
         return {
