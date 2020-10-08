@@ -1,0 +1,27 @@
+{
+    "git.path": "",
+    "user.email":"matteovh@gmail.com",
+    "user.password": "Mi$ita6hc",
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "python.defaultInterpreterPath": "C:\\Python38\\python.exe",
+    "explorer.confirmDragAndDrop": false,
+    "editor.suggestSelection": "first",
+    "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+    "python.languageServer": "Microsoft",
+    "explorer.confirmDelete": false,
+    "editor.largeFileOptimizations": false,
+    "python.dataScience.sendSelectionToInteractiveWindow": false,
+    "python.autoComplete.extraPaths": [
+
+    ],
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": true,
+        "strings": true
+    },
+    "editor.rulers": [
+    
+    ]
+
+}
