@@ -2,6 +2,17 @@ from connbase import *
 from hashlib import sha256
 import os
 from fastapi.responses import FileResponse
+from markdown2 import markdown
+
+EXTRAS = [
+    'break-on-newline',
+    'cuddled-lists',
+    'header-ids',
+    'nofollow',
+    'strike',
+    'target-blank-links',
+    'tables'
+]
 
 class MainApp(App):
     def create_connection(self, fingerprint):
@@ -38,6 +49,18 @@ async def change_name(fingerprint: str,name: str, response: Response):
     app.users[app.connections[fingerprint]['current_user']]['name'] = name
     app.update(fingerprint)
     return
+
+@app.app.get('/info/')
+async def get_info(infoName: str, response: Response):
+    if infoName+'.md' in os.listdir('info_db'):
+        with open(os.path.join('info_db',infoName+'.md'),'r') as imd:
+            return {
+                'content':markdown(imd.read(),extras=EXTRAS)
+            }
+    else:
+        return {
+            'content':'<div>No content provided for INFO_'+infoName+'. Please contact system administrator.'
+        }
 
 # Load all static files in web/
 @app.app.get('/',include_in_schema=False)

@@ -54,4 +54,68 @@ $(document).ready(function(){
             {fingerprint:FINGERPRINT,name:$(this).val()},{},console.log
         );
     });
+    $('.info-item').on('mouseenter',function(){
+        $('.info-item-dialog').remove();
+        var fthis = this;
+        r(
+            'get',
+            '/info/',
+            {infoName:$(this).attr('data-info')},{},function(data){
+                var infoElement = $('<div class="info-item-dialog"></div>')
+                .attr('id','#info-item-'+$(fthis).attr('id'))
+                .css({
+                    width:window.innerWidth*0.4,
+                    height:window.innerHeight*0.4
+                })
+                .html(data.content);
+
+                var pOffset = $(fthis).offset();
+                var pHeight = $(fthis).height();
+                var pWidth = $(fthis).width();
+
+                if ($(fthis).attr('data-info-loc') == 'bottom') {
+                    var eTop = pOffset.top + pHeight;
+                    var eLeft = pOffset.left + pWidth/2 - infoElement.width()/2;
+                } else if ($(fthis).attr('data-info-loc') == 'top') {
+                    var eTop = pOffset.top - infoElement.height();
+                    var eLeft = pOffset.left + pWidth/2 - infoElement.width()/2;
+                } else if ($(fthis).attr('data-info-loc') == 'left') {
+                    var eTop = pOffset.top - pHeight/2 + infoElement.height()/2;
+                    var eLeft = pOffset.left - infoElement.width();
+                } else if ($(fthis).attr('data-info-loc') == 'right') {
+                    var eTop = pOffset.top - pHeight/2 + infoElement.height()/2;
+                    var eLeft = pOffset.left + pWidth;
+                } else {
+                    var eTop = 0;
+                    var eLeft = 0;
+                }
+
+                if (eTop + infoElement.height() > window.innerHeight) {
+                    $(infoElement).css('height',window.innerHeight-eTop);
+                }
+                if (eTop < 0) {
+                    $(infoElement).css('height',eTop+infoElement.height());
+                    eTop = 0;
+                }
+                if (eLeft + infoElement.width() > window.innerWidth) {
+                    $(infoElement).css('width',window.innerWidth-eLeft);
+                }
+                if (eLeft < 0) {
+                    $(infoElement).css('height',eLeft+infoElement.width());
+                    eLeft = 0;
+                }
+
+                $(infoElement).css({
+                    top:eTop+'px',
+                    left:eLeft+'px'
+                });
+                $(infoElement).appendTo($('body'));
+                    }
+                );
+    });
+    $(document).on('click',function(event){
+        if (!($(event.target).parents('.info-item-dialog').length > 0 || $(event.target).hasClass('info-item-dialog'))) {
+            $('.info-item-dialog').remove();
+        }
+    });
 });
