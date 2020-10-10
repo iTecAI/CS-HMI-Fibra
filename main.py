@@ -30,11 +30,23 @@ class MainApp(App):
                 'owner':fingerprint,
                 'funds':0,
                 'inventory':[],
-                'name':'Citizen #'+str(1+len(list(self.users.keys())))
+                'name':'Citizen #'+str(1+len(list(self.users.keys()))),
+                'events':[]
             }
+            self.users[usr]['events'].append({
+                'type':'toast',
+                'text':'Welcome!'
+            })
+            conn['update'] = True
         conn['current_user'] = usr
         self.cache_all()
         return conn
+    
+    def broadcast(self,event,user=None):
+        for u in self.users.keys():
+            if u == user or user == None:
+                self.users[u]['events'].append(event)
+                self.update(self.users[u]['owner'])
 
 app = MainApp()
 if not os.path.exists('users.json'):
@@ -59,8 +71,21 @@ async def get_info(infoName: str, response: Response):
             }
     else:
         return {
-            'content':'<div>No content provided for INFO_'+infoName+'. Please contact system administrator.'
+            'content':'<div>No content provided for INFO_'+infoName+'. Please contact system administrator.</div>'
         }
+
+@app.app.post('/user/events/dequeue')
+async def dequeue(fingerprint: str, response: Response):
+    if not app.check_fp(fingerprint):
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return
+    if len(app.users[app.connections[fingerprint]['current_user']]['events']) > 0:
+        del app.users[app.connections[fingerprint]['current_user']]['events'][0]
+        app.update(fingerprint)
+        return
+    else:
+        response.status_code = status.HTTP_204_NO_CONTENT
+        return
 
 # Load all static files in web/
 @app.app.get('/',include_in_schema=False)
