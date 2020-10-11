@@ -2,6 +2,7 @@ var FINGERPRINT = null;
 var USERID = null;
 var CONNECTION = {};
 var USER = {};
+var ORIGIN = [window.innerWidth/2,window.innerHeight/2];
 
 function r(request_type,path,params,body,success) {
     $.ajax({
@@ -106,8 +107,8 @@ function dequeue() {
 }
 
 function refresh(data,force) {
-    if (data.connection.update || force == true) {
-        console.log(data);
+    //if (data.connection.update || force == true) {
+    if (true) {
         CONNECTION = data.connection;
         USER = data.user;
         $('#username input').val(USER.name);
@@ -116,14 +117,79 @@ function refresh(data,force) {
             var event = USER.events[0];
             if (event.type == 'toast') {
                 toast(event.text,event.info);
-                dequeue();
             }
+
+            dequeue();
         }
+
+        r(
+            'get',
+            '/user/all/',{},{},function(data){
+                var ks = Object.keys(data);
+                var all_items = [];
+                for (var u=0;u<ks.length;u++) {
+                    var items = data[ks[u]].for_sale;
+                    if (items.length > 0) {
+                        for (var i=0;i<items.length;i++) {
+                            var item = items[i];
+                            all_items.push(item.id);
+                            if ($('#mp-item-'+item.id).length == 0) {
+                                $('<div></div>')
+                                .addClass('mp-item')
+                                .attr('id','mp-item-'+item.id)
+                                .attr('data-id',item.id)
+                                .attr('data-suid',item.seller)
+                                .attr('data-price',item.price)
+                                .append(
+                                    $('<div></div>')
+                                    .addClass('mp-item-content')
+                                    .append(
+                                        $('<span class=\'mp-item-title\'></span>')
+                                        .text(item.name)
+                                    )
+                                    .append(' - <span class=\'mp-dollar\'>≋</span>')
+                                    .append(
+                                        $('<span class=\'mp-item-cost\'></span>')
+                                        .text(item.price)
+                                    )
+                                    .append('<br>Sold By: ')
+                                    .append(
+                                        $('<span class=\'mp-item-seller\'></span>')
+                                        .text(item.seller_name)
+                                    )
+                                )
+                                .append(
+                                    $('<button class=\'mp-item-buy\'><img src=\'assets/add-to-cart.png\'></button>')
+                                )
+                                .appendTo($('#mp-content'));
+                            }
+                        }
+                    }
+                }
+                $('.mp-item').each(function(){
+                    if (!all_items.includes($(this).attr('data-id'))) {
+                        $(this).remove();
+                    }
+                });
+            }
+        );
     }
 }
 function refresh_force(data) {
     refresh(data,true);
 }
+
+function degrees_to_radians(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
+function radians_to_degrees(radians)
+{
+  var pi = Math.PI;
+  return radians * (180/pi);
+}
+
 
 $(document).ready(function(){
     // Load cookies and create connection
@@ -191,28 +257,22 @@ $(document).ready(function(){
                     var eLeft = 0;
                 }
 
-                if (eTop + infoElement.height() > window.innerHeight) {
-                    $(infoElement).css('height',window.innerHeight-eTop);
-                }
-                if (eTop < 0) {
-                    $(infoElement).css('height',eTop+infoElement.height());
-                    eTop = 0;
-                }
                 if (eLeft + infoElement.width() > window.innerWidth) {
                     $(infoElement).css('width',window.innerWidth-eLeft);
                 }
                 if (eLeft < 0) {
-                    $(infoElement).css('height',eLeft+infoElement.width());
+                    $(infoElement).css('width',eLeft+infoElement.width());
                     eLeft = 0;
                 }
 
                 $(infoElement).css({
                     top:eTop+'px',
-                    left:eLeft+'px'
+                    left:eLeft+'px',
+                    height:'fit-content'
                 });
                 $(infoElement).appendTo($('body'));
-                    }
-                );
+            }
+        );
     });
     $(document).on('click',function(event){
         if (!($(event.target).parents('.info-item-dialog').length > 0 || $(event.target).hasClass('info-item-dialog') || $(event.target).hasClass('info-item'))) {
