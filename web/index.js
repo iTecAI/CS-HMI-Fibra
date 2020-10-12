@@ -3,6 +3,7 @@ var USERID = null;
 var CONNECTION = {};
 var USER = {};
 var ORIGIN = [window.innerWidth/2,window.innerHeight/2];
+var CONVERSION = 1;
 
 function r(request_type,path,params,body,success) {
     $.ajax({
@@ -121,6 +122,17 @@ function refresh(data,force) {
 
             dequeue();
         }
+
+        r(
+            'get',
+            '/server/',
+            {},{},function(data){
+                CONVERSION = Number(data.conversion_rate);
+                $('#amt-dollars > span > span').text(USER.dollars);
+                $('#amt-fibra > span > span').text(USER.funds);
+                $('#conv-val > span').text(CONVERSION);
+            }
+        );
 
         var inv = USER.inventory;
         var invids = [];
@@ -382,5 +394,68 @@ $(document).ready(function(){
         if (!($(event.target).parents('.info-item-dialog').length > 0 || $(event.target).hasClass('info-item-dialog') || $(event.target).hasClass('info-item'))) {
             $('.info-item-dialog').remove();
         }
+    });
+
+    $('#fibra-convert').on('keyup',function(event){
+        if (Number($(event.delegateTarget).val()) > USER.funds-1) {
+            $(event.delegateTarget).val(USER.funds-1);
+        }
+        if (Number($(event.delegateTarget).val()) < 0) {
+            $(event.delegateTarget).val(0);
+        }
+        $(event.delegateTarget).val(Number($(event.delegateTarget).val()).toFixed(0));
+        $('#dollar-convert').val(Number($(event.delegateTarget).val())*CONVERSION);
+    });
+    $('#dollar-convert').on('keyup',function(event){
+        if (Number($(event.delegateTarget).val()) > USER.dollars-1) {
+            $(event.delegateTarget).val(USER.dollars-1);
+        }
+        if (Number($(event.delegateTarget).val()) < 0) {
+            $(event.delegateTarget).val(0);
+        }
+        $(event.delegateTarget).val(Number($(event.delegateTarget).val()).toFixed(0));
+        $('#fibra-convert').val(Number($(event.delegateTarget).val())/CONVERSION);
+    });
+    $('#conv-ftd').on('click',function(){
+        $('#dollar-convert').val(Number($('#dollar-convert').val()).toFixed(0));
+        $('#fibra-convert').val(Number($('#fibra-convert').val()).toFixed(0));
+        $('#dollar-convert').val(Number($('#fibra-convert').val())*CONVERSION);
+        if (Number($('#fibra-convert').val()) > USER.funds) {
+            $('#fibra-convert').val(USER.funds);
+        }
+        $('#fibra-convert').val(Number($('#fibra-convert').val()).toFixed(0));
+        if (Number($('#fibra-convert').val()) == 0) {
+            return;
+        }
+        r(
+            'post',
+            '/user/funds/edit/',
+            {
+                fingerprint: FINGERPRINT,
+                fibra: Number(USER.funds) - Number($('#fibra-convert').val()),
+                dollars: USER.dollars + Number($('#dollar-convert').val())
+            },{},function(){}
+        );
+    });
+    $('#conv-dtf').on('click',function(){
+        $('#dollar-convert').val(Number($('#dollar-convert').val()).toFixed(0));
+        $('#fibra-convert').val(Number($('#fibra-convert').val()).toFixed(0));
+        $('#fibra-convert').val(Number($('#dollar-convert').val())/CONVERSION);
+        $('#fibra-convert').val(Number($('#fibra-convert').val()).toFixed(0));
+        if (Number($('#dollar-convert').val()) > USER.dollars) {
+            $('#dollar-convert').val(USER.dollars);
+        }
+        if (Number($('#dollar-convert').val()) == 0) {
+            return;
+        }
+        r(
+            'post',
+            '/user/funds/edit/',
+            {
+                fingerprint: FINGERPRINT,
+                fibra: Number(USER.funds) + Number($('#fibra-convert').val()),
+                dollars: USER.dollars - Number($('#dollar-convert').val())
+            },{},function(){}
+        );
     });
 });

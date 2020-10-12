@@ -390,6 +390,7 @@ body {
     -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
     -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
     box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+    z-index: 100;
 }
 .panel-title span {
     position: absolute;
@@ -410,6 +411,151 @@ body {
     border-right: 4px solid var(--primary3);
     box-sizing: border-box;
     overflow: hidden;
+}
+#current-amts {
+    position: absolute;
+    top: 7vh;
+    left: 0px;
+    display: inline-block;
+    width: 100%;
+    height: calc(50% - 7vh);
+}
+#current-amts > span {
+    display: inline-block;
+    width: 100%;
+    padding: 10px;
+    font-size: 2vh;
+    color: var(--tertiary);
+    font-family: sans-serif;
+    text-align: center;
+    background-color: var(--primary4);
+    z-index: 50;
+    position: relative;
+}
+#current-amts > div {
+    position: relative;
+    padding: 10px;
+    font-size: 1.8vh;
+    color: var(--tertiary);
+    font-family: sans-serif;
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+    font-weight: bolder;
+    margin-top: 5px;
+}
+#current-amts > div > span {
+    position: absolute;
+    display: inline-block;
+    width: 85%;
+    right: 5%;
+    top: 0px;
+    height: 100%;
+    text-align: center;
+    border-radius: 5px;
+    background-color: var(--primary4);
+}
+#current-amts > div > span > span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+#converter {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    display: inline-block;
+    width: 100%;
+    height: 50%;
+}
+#conv-title, #conv-val {
+    display: inline-block;
+    width: 100%;
+    padding: 10px;
+    font-size: 2vh;
+    color: var(--tertiary);
+    font-family: sans-serif;
+    text-align: center;
+    background-color: var(--primary4);
+    z-index: 50;
+    position: relative;
+}
+#conv-val {
+    background-color: var(--primary3);
+}
+#converter-cfg > div {
+    display: inline-block;
+    width: 100%;
+    height: 30px;
+    position: relative;
+    margin-top: 5px;
+    color: var(--tertiary);
+    font-family: sans-serif;
+    box-sizing: border-box;
+}
+#converter-cfg > div > input {
+    box-sizing: border-box;
+    position: absolute;
+    top: 0px;
+    right: 5%;
+    display: inline-block;
+    width: 80%;
+    height: 100%;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: var(--primary4);
+    text-align: center;
+}
+#converter-cfg > div > input:focus {
+    outline: none;
+}
+#converter-cfg > div > span {
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    transform: translate(0px,-50%);
+    display: inline-block;
+}
+#conv-buttons {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    display: inline-block;
+    width: 100%;
+    height: 45px;
+}
+#conv-buttons button {
+    border: none;
+    color: var(--tertiary);
+    font-family: sans-serif;
+    box-sizing: border-box;
+    background-color: var(--primary3);
+    font-size: 2vh;
+    transition: background-color 0.2s;
+    display: inline-block;
+    height: 80%;
+    width: 42.5%;
+    border-radius: 5px;
+}
+#conv-buttons button:hover {
+    background-color: var(--primary4);
+}
+#conv-buttons button:focus {
+    outline: none;
+}
+#conv-ftd {
+    position: absolute;
+    left: 5%;
+    top: 10%;
+}
+#conv-dtf {
+    position: absolute;
+    right: 5%;
+    top: 10%;
 }
 
 #news {

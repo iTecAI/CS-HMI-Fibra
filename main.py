@@ -23,6 +23,16 @@ COLORS = ['Red','Blue','Green','Purple','Yellow','Orange','Dark Blue','Black','G
 
 
 class MainApp(App):
+    def __init__(
+            self,
+            user_management=True,
+            session_timeout=30,
+            user_cache='users.json',
+            c_rate=1.5
+        ):
+        super().__init__()
+        self.conversion_rate = c_rate
+
     def create_connection(self, fingerprint):
         conn = super().create_connection(fingerprint)
         self.cache_all()
@@ -36,7 +46,8 @@ class MainApp(App):
             usr = sha256(fingerprint.encode('utf-8')).hexdigest()
             self.users[usr] = {
                 'owner':fingerprint,
-                'funds':500,
+                'funds':50,
+                'dollars':50,
                 'inventory':[],
                 'name':'Citizen #'+str(1+len(list(self.users.keys()))),
                 'events':[]
@@ -66,12 +77,19 @@ for i in range(20):
     app.users[usr] = {
         'owner':'system',
         'funds':0,
+        'dollars':0,
         'inventory':[],
         'name':'Bot #'+str(1+len(list(app.users.keys()))),
         'events':[]
     }
 app.cache_all()
 app.users = app.load_cache()
+
+@app.app.get('/server/')
+async def get_server():
+    return {
+        'conversion_rate':app.conversion_rate
+    }
 
 @app.app.post('/user/name/')
 async def change_name(fingerprint: str,name: str, response: Response):
@@ -167,6 +185,7 @@ async def purchase(fingerprint: str, name: str, price: str, id: str, uid: str, r
         'price':price,
         'for_sale':False
     })
+    app.users[uid]['funds'] += price
     for i in range(len(app.users[uid]['inventory'])):
         if app.users[uid]['inventory'][i]['id'] == id:
             del app.users[uid]['inventory'][i]
@@ -198,6 +217,15 @@ async def edit_item(item,fingerprint: str, key: str, value: str, response: Respo
             app.update(fingerprint)
             return
     response.status_code = status.HTTP_404_NOT_FOUND
+    return
+
+@app.app.post('/user/funds/edit/')
+async def edit_funds(fingerprint: str, fibra: float, dollars: float, response: Response):
+    if not app.check_fp(fingerprint):
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return
+    app.users[app.connections[fingerprint]['current_user']]['funds'] = fibra
+    app.users[app.connections[fingerprint]['current_user']]['dollars'] = dollars
     return
 
 @app.app.on_event('startup')

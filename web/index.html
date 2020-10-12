@@ -41,8 +41,22 @@
         </div>
         <div id='wallet'>
             <div id='wa-title' class='panel-title'><span class='info-item' data-info='wallet' data-info-loc="bottom">Wallet</span></div>
-            <div id='wa-content'>
-                
+            <div id='current-amts'>
+                <span>Current Funds</span>
+                <div id='amt-dollars'>$<span><span></span></span></div>
+                <div id='amt-fibra'>≋<span><span></span></span></div>
+            </div>
+            <div id='converter'>
+                <div id='conv-title'>Fund Converter</div>
+                <div id='conv-val'>Conversion: $<span></span> per 1 Fibra</div>
+                <div id='converter-cfg'>
+                    <div><span>$</span><input id='dollar-convert'></div>
+                    <div><span>≋</span><input id='fibra-convert'></div>
+                </div>
+                <div id='conv-buttons'>
+                    <button id='conv-ftd'>Fibra > Dollars</button>
+                    <button id='conv-dtf'>Dollars > Fibra</button>
+                </div>
             </div>
         </div>
         <div id='news'>
