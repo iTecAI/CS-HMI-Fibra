@@ -199,6 +199,7 @@ body {
     width: 100%;
     height: calc(100% - 7vh);
     overflow-y: scroll;
+    z-index: 40;
 }
 #mp-content::-webkit-scrollbar {
     display: none;

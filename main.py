@@ -17,6 +17,10 @@ EXTRAS = [
 
 MAX_BOT_ITEMS = 5
 
+ADJS = ['Shiny','Weird','Strange','Heavy','Light','Potato-Shaped','Really Expensive','Small','Large','Long','Stubby']
+COLORS = ['Red','Blue','Green','Purple','Yellow','Orange','Dark Blue','Black','Gray','Light Gray','White']
+
+
 class MainApp(App):
     def create_connection(self, fingerprint):
         conn = super().create_connection(fingerprint)
@@ -88,7 +92,14 @@ async def get_users(response: Response):
             if item['for_sale']:
                 for_sale.append({
                     'id':item['id'],
-                    'name':item['name'],
+                    'name':str(item['name']).format(
+                        adj=random.choice(ADJS),
+                        adj2=random.choice(ADJS),
+                        adj3=random.choice(ADJS),
+                        color=random.choice(COLORS),
+                        color2=random.choice(COLORS),
+                        color3=random.choice(COLORS)
+                    ),
                     'seller':u,
                     'seller_name':app.users[u]['name'],
                     'price':item['price']
@@ -129,13 +140,16 @@ async def dequeue(fingerprint: str, response: Response):
 async def simloop():
     app.cache_all()
     app.users = app.load_cache()
+    with open('items.json','r') as f:
+        items = json.load(f)
     newitem = False
     for u in app.users.keys():
         if app.users[u]['owner'] == 'system' and random.randint(0,100) > 95 and len(app.users[u]['inventory']) < MAX_BOT_ITEMS:
+            item = random.choice(items)
             app.users[u]['inventory'].append({
                 'id':sha256(str(time.time()*random.random()).encode('utf-8')).hexdigest(),
-                'name':'An Item',
-                'price':random.randint(1,200),
+                'name':item['name'],
+                'price':item['price']+max([1,random.randint(-10,10)]),
                 'for_sale':True
             })
             newitem = True
