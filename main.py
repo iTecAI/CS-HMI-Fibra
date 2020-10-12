@@ -4,6 +4,7 @@ import os
 from fastapi.responses import FileResponse
 from markdown2 import markdown
 import random
+from pydantic import BaseModel
 
 EXTRAS = [
     'break-on-newline',
@@ -35,7 +36,7 @@ class MainApp(App):
             usr = sha256(fingerprint.encode('utf-8')).hexdigest()
             self.users[usr] = {
                 'owner':fingerprint,
-                'funds':0,
+                'funds':500,
                 'inventory':[],
                 'name':'Citizen #'+str(1+len(list(self.users.keys()))),
                 'events':[]
@@ -134,6 +135,70 @@ async def dequeue(fingerprint: str, response: Response):
     else:
         response.status_code = status.HTTP_204_NO_CONTENT
         return
+
+class PurchaseModel(BaseModel):
+    fingerprint: str
+    name: str
+    price: int
+    id: str
+    uid: str
+
+@app.app.post('/user/items/purchase/')
+async def purchase(fingerprint: str, name: str, price: str, id: str, uid: str, response: Response):
+    price = int(price)
+    if not app.check_fp(fingerprint):
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return
+    found = False
+    for u in app.users:
+        if u == uid:
+            found = True
+            break
+    if not found:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return
+    if price > app.users[app.connections[fingerprint]['current_user']]['funds']:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return
+    app.users[app.connections[fingerprint]['current_user']]['funds'] -= price
+    app.users[app.connections[fingerprint]['current_user']]['inventory'].append({
+        'id':sha256(str(time.time()*random.random()).encode('utf-8')).hexdigest(),
+        'name':name,
+        'price':price,
+        'for_sale':False
+    })
+    for i in range(len(app.users[uid]['inventory'])):
+        if app.users[uid]['inventory'][i]['id'] == id:
+            del app.users[uid]['inventory'][i]
+            break
+    
+    app.update(fingerprint)
+    return
+
+@app.app.post('/user/items/edit/{item}/')
+async def edit_item(item,fingerprint: str, key: str, value: str, response: Response):
+    if not app.check_fp(fingerprint):
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return
+    if key == 'name':
+        val = str(value)
+    elif key == 'price':
+        val = int(value)
+    elif key == 'for_sale':
+        if value == 'true':
+            val = True
+        else:
+            val = False
+    else:
+        response.status_code = status.HTTP_405_METHOD_NOT_ALLOWED
+        return
+    for i in range(len(app.users[app.connections[fingerprint]['current_user']]['inventory'])):
+        if app.users[app.connections[fingerprint]['current_user']]['inventory'][i]['id'] == item:
+            app.users[app.connections[fingerprint]['current_user']]['inventory'][i][key] = val
+            app.update(fingerprint)
+            return
+    response.status_code = status.HTTP_404_NOT_FOUND
+    return
 
 @app.app.on_event('startup')
 @repeat_every(seconds=5)

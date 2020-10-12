@@ -122,6 +122,93 @@ function refresh(data,force) {
             dequeue();
         }
 
+        var inv = USER.inventory;
+        var invids = [];
+        for (var i=0;i<inv.length;i++){
+            invids.push(inv[i].id);
+            if (
+                $(
+                    '#inv-item-'+inv[i].id).length == 0 
+                    || (
+                        $('#inv-item-'+inv[i].id).attr('data-for-sale') != inv[i].for_sale.toString() 
+                        && $('#inv-item-'+inv[i].id).attr('data-for-sale') != undefined
+                    )
+                    || (
+                        $('#inv-item-'+inv[i].id).attr('data-price') != inv[i].price.toString() 
+                        && $('#inv-item-'+inv[i].id).attr('data-price') != undefined
+                    )|| (
+                        $('#inv-item-'+inv[i].id).attr('data-name') != inv[i].name.toString() 
+                        && $('#inv-item-'+inv[i].id).attr('data-name') != undefined
+                    )
+            ) {
+                $('<div class="inv-item"></div>')
+                .attr({
+                    id:'inv-item-'+inv[i].id,
+                    'data-id':inv[i].id,
+                    'data-for-sale':inv[i].for_sale,
+                    'data-name':inv[i].name,
+                    'data-price':inv[i].price
+                })
+                .append(
+                    $('<input class="inv-item-name">')
+                    .val(inv[i].name)
+                    .on('change',function(){
+                        r(
+                            'post',
+                            '/user/items/edit/'+$(this).parents('.inv-item').attr('data-id')+'/',
+                            {
+                                fingerprint:FINGERPRINT,
+                                key:'name',
+                                value:$(this).val()
+                            },{},function(){}
+                        );
+                    })
+                    )
+                .append(
+                    $('<input class="inv-item-price">')
+                    .val(inv[i].price)
+                    .on('change',function(){
+                        r(
+                            'post',
+                            '/user/items/edit/'+$(this).parents('.inv-item').attr('data-id')+'/',
+                            {
+                                fingerprint:FINGERPRINT,
+                                key:'price',
+                                value:$(this).val()
+                            },{},function(){}
+                        );
+                    })
+                )
+                .append(
+                    $('<input class="inv-item-for-sale" type="checkbox">')
+                    .prop('checked',inv[i].for_sale)
+                    .on('change',function(){
+                        r(
+                            'post',
+                            '/user/items/edit/'+$(this).parents('.inv-item').attr('data-id')+'/',
+                            {
+                                fingerprint:FINGERPRINT,
+                                key:'for_sale',
+                                value:$(this).prop('checked')
+                            },{},function(){}
+                        );
+                    })
+                )
+                .append($('<div class="for-sale-title"><span>For Sale</span></div>'))
+                .appendTo($('#in-content'));
+            }
+        }
+
+        var located = [];
+        var inv_els = $('.inv-item').toArray();
+        for (var e=0;e<inv_els.length;e++) {
+            if (!invids.includes($(inv_els[e]).attr('data-id')) || located.includes($(inv_els[e]).attr('data-id'))) {
+                $('#'+$(inv_els[e]).attr('id')).remove()
+            } else {
+                located.push($(inv_els[e]).attr('data-id'));
+            }
+        }
+
         r(
             'get',
             '/user/all/',{},{},function(data){
@@ -160,6 +247,23 @@ function refresh(data,force) {
                                 )
                                 .append(
                                     $('<button class=\'mp-item-buy\'><img src=\'assets/add-to-cart.png\'></button>')
+                                    .prop('disabled',USER.funds < item.price)
+                                    .on('click',function(){
+                                        var dat = {
+                                            name:$(this).parents('.mp-item').children('.mp-item-content').children('.mp-item-title').text(),
+                                            price:Number($(this).parents('.mp-item').attr('data-price')),
+                                            id:$(this).parents('.mp-item').attr('data-id'),
+                                            uid:$(this).parents('.mp-item').attr('data-suid'),
+                                            fingerprint:FINGERPRINT
+                                        };
+                                        console.log(dat);
+                                        r(
+                                            'post',
+                                            '/user/items/purchase',
+                                            dat,
+                                            {},console.log
+                                        );
+                                    })
                                 )
                                 .appendTo($('#mp-content'));
                             }
@@ -258,7 +362,7 @@ $(document).ready(function(){
                 }
 
                 if (eLeft + infoElement.width() > window.innerWidth) {
-                    $(infoElement).css('width',window.innerWidth-eLeft);
+                    $(infoElement).css('width',window.innerWidth-eLeft-15);
                 }
                 if (eLeft < 0) {
                     $(infoElement).css('width',eLeft+infoElement.width());
