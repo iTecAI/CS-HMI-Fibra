@@ -16,7 +16,7 @@ EXTRAS = [
     'tables'
 ]
 
-MAX_BOT_ITEMS = 5
+MAX_BOT_ITEMS = 3
 
 ADJS = ['Shiny','Weird','Strange','Heavy','Light','Potato-Shaped','Really Expensive','Small','Large','Long','Stubby']
 COLORS = ['Red','Blue','Green','Purple','Yellow','Orange','Dark Blue','Black','Gray','Light Gray','White']
@@ -47,6 +47,7 @@ class MainApp(App):
         if usr == None:
             usr = sha256(fingerprint.encode('utf-8')).hexdigest()
             self.users[usr] = {
+                'id':usr,
                 'owner':fingerprint,
                 'funds':50,
                 'dollars':50,
@@ -74,11 +75,12 @@ if not os.path.exists('users.json'):
     with open('users.json','w') as f:
         f.write('{}')
 
-for i in range(20):
+for i in range(5):
     usr = sha256(str(random.random()).encode('utf-8')).hexdigest()
     app.users[usr] = {
+        'id':usr,
         'owner':'system',
-        'funds':0,
+        'funds':50,
         'dollars':0,
         'inventory':[],
         'name':'Bot #'+str(1+len(list(app.users.keys()))),
@@ -254,6 +256,28 @@ async def simloop():
                 'for_sale':True
             })
             newitem = True
+        if app.users[u]['owner'] == 'system' and len(app.users[u]['inventory']) < MAX_BOT_ITEMS:
+            usr = {'owner':'system'}
+            c = 0
+            while usr['owner'] == 'system' and c < 2*len(app.users.values()):
+                usr = random.choice(list(app.users.values()))
+                c+=1
+            if not usr['owner'] == 'system':
+                old_inv = []
+                for i in range(len(usr['inventory'])):
+                    if usr['inventory'][i]['for_sale'] and random.random() > float(int(app.users[u]['funds']) / int(usr['inventory'][i]['price']*1.2)):
+                        app.users[usr['id']]['funds'] += usr['inventory'][i]['price']
+                        app.users[u]['funds'] -= usr['inventory'][i]['price']
+                        usr['inventory'][i]['for_sale'] = True
+                        usr['inventory'][i]['price'] += random.randint(-2,15);
+                        app.users[u]['inventory'].append(usr['inventory'][i].copy())
+                        app.broadcast({
+                            'type':'toast',
+                            'text':app.users[u]['name'] + ' has bought your ' + usr['inventory'][i]['name'] + '.'
+                        },user=usr['owner'])
+                    else:
+                        old_inv.append(usr['inventory'][i].copy())
+                app.users[usr['id']]['inventory'] = old_inv[:]
     if newitem:
         for i in app.users.keys():
             app.update(app.users[i]['owner'])
