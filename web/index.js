@@ -230,6 +230,10 @@ function refresh(data,force) {
         r(
             'get',
             '/user/all/',{},{},function(data){
+                console.log(force);
+                if (force==true) {
+                    $('#mp-content').html('');
+                }
                 var ks = Object.keys(data);
                 var all_items = [];
                 for (var u=0;u<ks.length;u++) {
@@ -279,7 +283,14 @@ function refresh(data,force) {
                                             'post',
                                             '/user/items/purchase',
                                             dat,
-                                            {},console.log
+                                            {},function(){
+                                                r(
+                                                    'get',
+                                                    '/connections/self/',
+                                                    {fingerprint:FINGERPRINT},
+                                                    {},refresh_force
+                                                );
+                                            }
                                         );
                                     })
                                 )
@@ -440,7 +451,14 @@ $(document).ready(function(){
                 fingerprint: FINGERPRINT,
                 fibra: Number(USER.funds) - Number($('#fibra-convert').val()),
                 dollars: USER.dollars + Number($('#dollar-convert').val())
-            },{},function(){}
+            },{},function(){
+                r(
+                    'get',
+                    '/connections/self/',
+                    {fingerprint:FINGERPRINT},
+                    {},refresh_force
+                );
+            }
         );
     });
     $('#conv-dtf').on('click',function(){
@@ -461,7 +479,14 @@ $(document).ready(function(){
                 fingerprint: FINGERPRINT,
                 fibra: Number(USER.funds) + Number($('#fibra-convert').val()),
                 dollars: USER.dollars - Number($('#dollar-convert').val())
-            },{},function(){}
+            },{},function(){
+                r(
+                    'get',
+                    '/connections/self/',
+                    {fingerprint:FINGERPRINT},
+                    {},refresh_force
+                );
+            }
         );
     });
 });
