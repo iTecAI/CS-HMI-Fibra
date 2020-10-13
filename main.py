@@ -34,6 +34,7 @@ class MainApp(App):
         self.conversion_rate = c_rate
         self.news = []
         self.purchases = []
+        self.last_con_change = 0
 
     def create_connection(self, fingerprint):
         conn = super().create_connection(fingerprint)
@@ -265,7 +266,7 @@ async def simloop():
             if not usr['owner'] == 'system':
                 old_inv = []
                 for i in range(len(usr['inventory'])):
-                    if usr['inventory'][i]['for_sale'] and random.random() > float(int(app.users[u]['funds']) / int(usr['inventory'][i]['price']*1.2)):
+                    if usr['inventory'][i]['for_sale'] and random.random() > float(int(app.users[u]['funds']) / int(usr['inventory'][i]['price']*1.5)):
                         app.users[usr['id']]['funds'] += usr['inventory'][i]['price']
                         app.users[u]['funds'] -= usr['inventory'][i]['price']
                         usr['inventory'][i]['for_sale'] = True
@@ -287,10 +288,16 @@ async def simloop():
     npurch = []
     for i in range(len(app.purchases)):
         if random.random() > 0.3:
-            app.news.append(str(random.choice(ntemp)).format(name=app.purchases[i]['username'],item=app.purchases[i]['item_name'],price=app.purchases[i]['price']))
+            app.news.append(str(random.choice(ntemp)).format(name=app.purchases[i]['username'],item=app.purchases[i]['item_name'],price='≋'+str(app.purchases[i]['price'])))
         else:
             npurch.append(app.purchases[i].copy())
     app.purchases = npurch[:]
+
+    if app.last_con_change+30 < time.time() and random.random() >= 0.98:
+        app.conversion_rate += round((random.choice([1,-1]) * random.random())*0.4,2)
+        app.conversion_rate = max([0.25,app.conversion_rate])
+        app.last_con_change = time.time()
+        app.news.append('BREAKING: Fibra Association arbitrarily sets conversion rate to '+str(app.conversion_rate)+' dollars per Fibra!')
             
 
 # Load all static files in web/
