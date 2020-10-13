@@ -131,6 +131,13 @@ function refresh(data,force) {
                 $('#amt-dollars > span > span').text(USER.dollars);
                 $('#amt-fibra > span > span').text(USER.funds);
                 $('#conv-val > span').text(CONVERSION);
+                var cnews = $('.ne-item').map(function(){return $(this).text();}).toArray();
+                console.log(cnews);
+                for (var n=0;n<data.news.length;n++) {
+                    if (!cnews.includes(data.news[n])){
+                        $('<div class="ne-item"></div>').text(data.news[n]).appendTo($('#ne-content'));
+                    }
+                }
             }
         );
 

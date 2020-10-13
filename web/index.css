@@ -571,3 +571,33 @@ body {
     box-sizing: border-box;
     overflow: hidden;
 }
+#ne-content {
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    display: inline-block;
+    width: 100%;
+    height: calc(100% - 7vh);
+    overflow-y: scroll;
+}
+#ne-content::-webkit-scrollbar {
+    display: none;
+}
+#ne-content {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.ne-item {
+    position: relative;
+    display: inline-block;
+    width: 94%;
+    height: fit-content;
+    margin: 3%;
+    padding: 10px;
+    color: var(--tertiary);
+    font-family: sans-serif;
+    box-sizing: border-box;
+    background-color: var(--primary3);
+    font-size: 1.6vh;
+    border-radius: 5px;
+}

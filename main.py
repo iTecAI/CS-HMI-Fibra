@@ -32,6 +32,8 @@ class MainApp(App):
         ):
         super().__init__()
         self.conversion_rate = c_rate
+        self.news = []
+        self.purchases = []
 
     def create_connection(self, fingerprint):
         conn = super().create_connection(fingerprint)
@@ -88,7 +90,8 @@ app.users = app.load_cache()
 @app.app.get('/server/')
 async def get_server():
     return {
-        'conversion_rate':app.conversion_rate
+        'conversion_rate':app.conversion_rate,
+        'news':app.news
     }
 
 @app.app.post('/user/name/')
@@ -111,14 +114,7 @@ async def get_users(response: Response):
             if item['for_sale']:
                 for_sale.append({
                     'id':item['id'],
-                    'name':str(item['name']).format(
-                        adj=random.choice(ADJS),
-                        adj2=random.choice(ADJS),
-                        adj3=random.choice(ADJS),
-                        color=random.choice(COLORS),
-                        color2=random.choice(COLORS),
-                        color3=random.choice(COLORS)
-                    ),
+                    'name':item['name'],
                     'seller':u,
                     'seller_name':app.users[u]['name'],
                     'price':item['price']
@@ -185,6 +181,11 @@ async def purchase(fingerprint: str, name: str, price: str, id: str, uid: str, r
         'price':price,
         'for_sale':False
     })
+    app.purchases.append({
+        'username':app.users[app.connections[fingerprint]['current_user']]['name'],
+        'item_name':name,
+        'price':price
+    })
     app.users[uid]['funds'] += price
     for i in range(len(app.users[uid]['inventory'])):
         if app.users[uid]['inventory'][i]['id'] == id:
@@ -241,7 +242,14 @@ async def simloop():
             item = random.choice(items)
             app.users[u]['inventory'].append({
                 'id':sha256(str(time.time()*random.random()).encode('utf-8')).hexdigest(),
-                'name':item['name'],
+                'name':str(item['name']).format(
+                        adj=random.choice(ADJS),
+                        adj2=random.choice(ADJS),
+                        adj3=random.choice(ADJS),
+                        color=random.choice(COLORS),
+                        color2=random.choice(COLORS),
+                        color3=random.choice(COLORS)
+                    ),
                 'price':item['price']+max([1,random.randint(-10,10)]),
                 'for_sale':True
             })
@@ -249,6 +257,16 @@ async def simloop():
     if newitem:
         for i in app.users.keys():
             app.update(app.users[i]['owner'])
+    
+    with open('news_template.json','r') as f:
+        ntemp = json.load(f)
+    npurch = []
+    for i in range(len(app.purchases)):
+        if random.random() > 0.3:
+            app.news.append(str(random.choice(ntemp)).format(name=app.purchases[i]['username'],item=app.purchases[i]['item_name'],price=app.purchases[i]['price']))
+        else:
+            npurch.append(app.purchases[i].copy())
+    app.purchases = npurch[:]
             
 
 # Load all static files in web/
