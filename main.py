@@ -293,7 +293,7 @@ async def simloop():
             npurch.append(app.purchases[i].copy())
     app.purchases = npurch[:]
 
-    if app.last_con_change+30 < time.time() and random.random() >= 0.98:
+    if app.last_con_change+120 < time.time() and random.random() >= 0.98:
         app.conversion_rate += round((random.choice([1,-1]) * random.random())*0.4,2)
         app.conversion_rate = max([0.25,app.conversion_rate])
         app.last_con_change = time.time()
